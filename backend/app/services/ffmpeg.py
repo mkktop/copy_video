@@ -113,6 +113,7 @@ def transcode_video(input_path: str, output_path: str,
     cmd = [
         FFMPEG_PATH,
         "-i", str(input_path),
+        "-map", "0",  # Map all streams (video, audio, subtitles, attachments)
         "-c", "copy",  # Copy streams without re-encoding
         *metadata,     # Add new metadata
         "-movflags", "+faststart",  # Reorganize container
