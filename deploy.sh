@@ -55,12 +55,12 @@ else
 fi
 
 # 询问端口配置
-read -p "是否使用默认端口 8080？(y/n，默认 y): " USE_DEFAULT_PORT
+read -p "是否使用默认端口 3799？(y/n，默认 y): " USE_DEFAULT_PORT
 USE_DEFAULT_PORT=${USE_DEFAULT_PORT:-y}
 
 if [[ $USE_DEFAULT_PORT != "y"* ]]; then
     read -p "请输入端口号: " CUSTOM_PORT
-    sed -i "s/8080:80/$CUSTOM_PORT:80/g" docker-compose.yml
+    sed -i "s/3799:80/$CUSTOM_PORT:80/g" docker-compose.yml
     echo -e "${GREEN}✓ 端口已设置为 $CUSTOM_PORT${NC}"
 fi
 
@@ -95,7 +95,7 @@ echo -e "${GREEN}================================${NC}"
 echo -e "${GREEN}部署完成！${NC}"
 echo -e "${GREEN}================================${NC}"
 echo ""
-echo "访问地址: http://localhost:8080"
+echo "访问地址: http://localhost:3799"
 echo ""
 echo "常用命令:"
 echo "  查看日志: docker-compose logs -f"

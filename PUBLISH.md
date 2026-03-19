@@ -140,7 +140,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8080:80"
+      - "3799:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
@@ -171,7 +171,7 @@ IMAGE_PREFIX="your-username/copy-video"
 
 docker run -d \
   --name copy-video \
-  -p 8080:80 \
+  -p 3799:80 \
   -v $(pwd)/data:/app/data \
   -e TZ=Asia/Shanghai \
   $IMAGE_PREFIX-backend:latest

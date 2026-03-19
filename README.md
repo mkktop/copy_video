@@ -39,7 +39,7 @@ wget https://raw.githubusercontent.com/your-repo/copy-video/main/nginx.conf
 # 启动服务
 docker-compose up -d
 
-# 访问 http://localhost:8080
+# 访问 http://localhost:3799
 ```
 
 ### 方式二：本地构建
@@ -202,7 +202,7 @@ services:
 
 ### 修改端口
 
-默认端口为 **8080**（避免与NAS服务冲突），可在 `docker-compose.yml` 中修改：
+默认端口为 **3799**，可在 `docker-compose.yml` 中修改：
 
 ```yaml
 services:

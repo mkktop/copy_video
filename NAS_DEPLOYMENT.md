@@ -73,7 +73,7 @@ docker-compose up -d
 
 ## 端口配置
 
-默认使用 **8080** 端口（避免与 NAS Web 界面冲突）
+默认使用 **3799** 端口
 
 如需修改，编辑 `docker-compose.yml`：
 
@@ -115,7 +115,7 @@ backend:
 
 ## 访问地址
 
-启动后访问：`http://nas-ip:8080`
+启动后访问：`http://nas-ip:3799`
 
 ## 性能优化
 
@@ -138,7 +138,7 @@ docker update --cpus="2.0" copy-video-backend
 
 ### 1. 端口冲突
 
-如果 8080 端口被占用，修改 `docker-compose.yml` 中的端口映射。
+如果 3799 端口被占用，修改 `docker-compose.yml` 中的端口映射。
 
 ### 2. 权限问题
 

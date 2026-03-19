@@ -7,7 +7,7 @@ set -e
 # 配置
 IMAGE_PREFIX="your-username/copy-video"  # 替换为你的镜像前缀
 VERSION="latest"
-PORT="8080"
+PORT="3799"
 
 echo "================================"
 echo "Copy Video 一键部署脚本"
