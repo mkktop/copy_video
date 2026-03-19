@@ -14,14 +14,44 @@
 - **配置持久化** - 设置自动保存，重启后保持
 - **自动扫描** - 定时扫描目录自动转码新文件
 - **源文件管理** - 转码后可选择删除源文件
+- **多平台支持** - 支持 x86/ARM 架构，可在 NAS 上运行
 
 ## 技术栈
 
 - **后端**: FastAPI + Python 3.11 + FFmpeg
 - **前端**: Vue.js 3 + Element Plus + Vite
 - **部署**: Docker + Docker Compose + Nginx
+- **支持**: Linux (x86/ARM), Windows, macOS
 
 ## 快速开始
+
+### 方式一：使用预构建镜像（推荐）
+
+直接拉取已构建的镜像，无需本地编译：
+
+```bash
+# 下载 docker-compose.yml
+wget https://raw.githubusercontent.com/your-repo/copy-video/main/docker-compose.standalone.yml -O docker-compose.yml
+
+# 下载 nginx 配置
+wget https://raw.githubusercontent.com/your-repo/copy-video/main/nginx.conf
+
+# 启动服务
+docker-compose up -d
+
+# 访问 http://localhost:8080
+```
+
+### 方式二：本地构建
+
+```bash
+# 克隆项目
+git clone https://github.com/your-repo/copy-video.git
+cd copy-video
+
+# 启动服务（自动构建镜像）
+docker-compose up -d
+```
 
 ### 1. 准备视频文件
 
@@ -35,22 +65,13 @@ mkdir -p data/workspace/input
 cp /path/to/your/videos/* data/workspace/input/
 ```
 
-### 2. 启动服务
+### 2. 访问Web界面
 
-```bash
-# 构建并启动所有服务
-docker-compose up -d
+打开浏览器访问: http://localhost:8080
 
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
-```
-
-### 3. 访问Web界面
-
-打开浏览器访问: http://localhost
+> **NAS 用户**：请查看 [NAS 部署指南](NAS_DEPLOYMENT.md) 获取详细说明
+>
+> **镜像发布**：请查看 [发布指南](PUBLISH.md) 了解如何构建和发布镜像
 
 ## 目录结构
 
@@ -181,13 +202,13 @@ services:
 
 ### 修改端口
 
-编辑 `docker-compose.yml`:
+默认端口为 **8080**（避免与NAS服务冲突），可在 `docker-compose.yml` 中修改：
 
 ```yaml
 services:
   nginx:
     ports:
-      - "8080:80"  # 使用8080端口
+      - "9000:80"  # 改为其他端口
 ```
 
 ## API文档

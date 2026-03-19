@@ -1,31 +1,26 @@
 version: '3.8'
 
+# Copy Video - 使用预构建镜像的部署配置
+# 将镜像地址替换为你发布到 Docker Hub 的镜像地址
+
 services:
   # Backend - FastAPI with FFmpeg
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: your-username/copy-video-backend:latest  # 替换为你的镜像
     container_name: copy-video-backend
     volumes:
       - ./data/workspace:/app/workspace
       - ./data/db:/app/data
     environment:
       - PYTHONUNBUFFERED=1
+      - TZ=Asia/Shanghai  # 时区设置
     restart: unless-stopped
     networks:
       - copy-video-network
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   # Frontend - Vue.js SPA
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: your-username/copy-video-frontend:latest  # 替换为你的镜像
     container_name: copy-video-frontend
     depends_on:
       - backend
@@ -38,7 +33,7 @@ services:
     image: nginx:alpine
     container_name: copy-video-nginx
     ports:
-      - "8080:80"  # 改为8080端口，避免与NAS服务冲突
+      - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
@@ -51,7 +46,3 @@ services:
 networks:
   copy-video-network:
     driver: bridge
-
-volumes:
-  workspace-data:
-  db-data:
