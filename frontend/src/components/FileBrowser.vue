@@ -124,13 +124,6 @@ const formatSize = (bytes: number): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
-
-const props = defineProps<{
-  currentPath?: string
-  files?: FileInfo[]
-  loading?: boolean
-  selectedFiles?: Set<string>
-}>()
 </script>
 
 <style scoped>
