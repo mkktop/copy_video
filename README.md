@@ -27,30 +27,60 @@
 
 ### 方式一：使用预构建镜像（推荐）
 
-直接拉取已构建的镜像，无需本地编译：
+直接拉取 GitHub Container Registry 的镜像，无需本地编译：
 
 ```bash
-# 下载 docker-compose.yml
-wget https://raw.githubusercontent.com/your-repo/copy-video/main/docker-compose.standalone.yml -O docker-compose.yml
+# 1. 下载配置文件
+wget https://raw.githubusercontent.com/YOUR_USERNAME/copy-video/main/docker-compose.standalone.yml -O docker-compose.yml
+wget https://raw.githubusercontent.com/YOUR_USERNAME/copy-video/main/nginx.conf
 
-# 下载 nginx 配置
-wget https://raw.githubusercontent.com/your-repo/copy-video/main/nginx.conf
+# 2. 编辑 docker-compose.yml，将 YOUR_USERNAME 替换为实际的 GitHub 用户名
+sed -i 's/YOUR_USERNAME/your-actual-username/g' docker-compose.yml
 
-# 启动服务
+# 3. 启动服务
 docker-compose up -d
 
-# 访问 http://localhost:3799
+# 4. 访问 http://localhost:3799
 ```
 
 ### 方式二：本地构建
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-repo/copy-video.git
+git clone https://github.com/YOUR_USERNAME/copy-video.git
 cd copy-video
 
 # 启动服务（自动构建镜像）
-docker-compose up -d
+docker-compose up -d --build
+```
+
+## 自动构建（GitHub Actions）
+
+本项目已配置 GitHub Actions，推送到 GitHub 后会自动构建多架构 Docker 镜像：
+
+- **触发条件**：推送到 `main`/`master` 分支，或创建 `v*` 标签
+- **支持架构**：`linux/amd64` + `linux/arm64`
+- **镜像仓库**：GitHub Container Registry (ghcr.io)
+- **镜像地址**：
+  - 后端: `ghcr.io/YOUR_USERNAME/copy-video/backend:latest`
+  - 前端: `ghcr.io/YOUR_USERNAME/copy-video/frontend:latest`
+
+### 启用自动构建
+
+1. 将代码推送到 GitHub
+2. 进入仓库 Settings → Actions → General
+3. 确保 "Workflow permissions" 设置为 "Read and write permissions"
+4. 推送代码后自动触发构建
+
+### 拉取镜像
+
+```bash
+# 登录 GitHub Container Registry（首次需要）
+echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
+
+# 拉取镜像
+docker pull ghcr.io/YOUR_USERNAME/copy-video/backend:latest
+docker pull ghcr.io/YOUR_USERNAME/copy-video/frontend:latest
 ```
 
 ### 1. 准备视频文件
@@ -67,7 +97,7 @@ cp /path/to/your/videos/* data/workspace/input/
 
 ### 2. 访问Web界面
 
-打开浏览器访问: http://localhost:8080
+打开浏览器访问: http://localhost:3799
 
 > **NAS 用户**：请查看 [NAS 部署指南](NAS_DEPLOYMENT.md) 获取详细说明
 >
