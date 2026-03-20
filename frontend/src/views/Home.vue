@@ -8,8 +8,12 @@
             <div class="card-header">
               <span><el-icon><Folder /></el-icon> 文件浏览器</span>
               <el-breadcrumb separator="/">
-                <el-breadcrumb-item @click="navigateTo('.')">根目录</el-breadcrumb-item>
-                <el-breadcrumb-item v-for="part in pathParts" :key="part" @click="navigateTo(part)">
+                <el-breadcrumb-item @click="navigateTo('.', -1)">根目录</el-breadcrumb-item>
+                <el-breadcrumb-item
+                  v-for="(part, index) in pathParts"
+                  :key="index"
+                  @click="navigateTo(part, index)"
+                >
                   {{ part }}
                 </el-breadcrumb-item>
               </el-breadcrumb>
@@ -94,7 +98,7 @@ const handleNavigate = (path: string) => {
   if (path === '..') {
     const parts = currentPath.value.split('/')
     parts.pop()
-    currentPath.value = parts.join('.') || '.'
+    currentPath.value = parts.join('/') || '.'
   } else {
     currentPath.value = path
   }
@@ -102,11 +106,16 @@ const handleNavigate = (path: string) => {
   loadFiles()
 }
 
-const navigateTo = (path: string) => {
+const navigateTo = (path: string, index: number) => {
   if (path === '.') {
     currentPath.value = '.'
-    loadFiles()
+  } else {
+    // Navigate to specific path segment
+    const parts = currentPath.value.split('/')
+    currentPath.value = parts.slice(0, index + 1).join('/')
   }
+  selectedFiles.value.clear()
+  loadFiles()
 }
 
 // Handle file selection

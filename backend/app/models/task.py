@@ -32,6 +32,7 @@ class TaskResponse(BaseModel):
     error: Optional[str] = None
     created_at: str
     completed_at: Optional[str] = None
+    metadata: Optional[dict] = None
 
 
 class FileInfo(BaseModel):

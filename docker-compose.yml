@@ -51,7 +51,3 @@ services:
 networks:
   copy-video-network:
     driver: bridge
-
-volumes:
-  workspace-data:
-  db-data:
