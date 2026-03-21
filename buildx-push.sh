@@ -1,19 +1,20 @@
 #!/bin/bash
-# 多架构镜像构建和推送脚本
+# 多架构单镜像构建和推送脚本
 # 支持 x86_64 和 ARM64
 
 set -e
 
 # 配置
-REGISTRY="docker.io/your-username"  # 修改为你的 Docker Hub 用户名
+REGISTRY="docker.io/mkktop"  # 修改为你的 Docker Hub 用户名
 IMAGE_NAME="copy-video"
 VERSION="${1:-latest}"
 PLATFORMS="linux/amd64,linux/arm64"
 
 echo "================================"
-echo "多架构镜像构建脚本"
+echo "多架构单镜像构建脚本"
 echo "================================"
 echo "Registry: $REGISTRY"
+echo "Image: $IMAGE_NAME"
 echo "Version: $VERSION"
 echo "Platforms: $PLATFORMS"
 echo ""
@@ -38,55 +39,28 @@ if ! docker info | grep -q "Username"; then
     docker login
 fi
 
-# 构建后端镜像
+# 构建单镜像
 echo ""
 echo "================================"
-echo "构建后端多架构镜像..."
+echo "构建单镜像（前端+后端）..."
 echo "================================"
 
 docker buildx build \
   --platform $PLATFORMS \
-  -t $REGISTRY/$IMAGE_NAME-backend:$VERSION \
-  -f ./backend/Dockerfile \
-  ./backend \
-  --push
+  -t $REGISTRY/$IMAGE_NAME:$VERSION \
+  -t ghcr.io/mkktop/$IMAGE_NAME:$VERSION \
+  --push \
+  .
 
 # 添加 latest 标签
 if [ "$VERSION" != "latest" ]; then
     docker buildx build \
       --platform $PLATFORMS \
-      -t $REGISTRY/$IMAGE_NAME-backend:latest \
-      -f ./backend/Dockerfile \
-      ./backend \
-      --push
+      -t $REGISTRY/$IMAGE_NAME:latest \
+      -t ghcr.io/mkktop/$IMAGE_NAME:latest \
+      --push \
+      .
 fi
-
-echo -e "✓ 后端镜像构建完成"
-
-# 构建前端镜像
-echo ""
-echo "================================"
-echo "构建前端多架构镜像..."
-echo "================================"
-
-docker buildx build \
-  --platform $PLATFORMS \
-  -t $REGISTRY/$IMAGE_NAME-frontend:$VERSION \
-  -f ./frontend/Dockerfile \
-  ./frontend \
-  --push
-
-# 添加 latest 标签
-if [ "$VERSION" != "latest" ]; then
-    docker buildx build \
-      --platform $PLATFORMS \
-      -t $REGISTRY/$IMAGE_NAME-frontend:latest \
-      -f ./frontend/Dockerfile \
-      ./frontend \
-      --push
-fi
-
-echo -e "✓ 前端镜像构建完成"
 
 echo ""
 echo "================================"
@@ -98,9 +72,8 @@ echo "  - linux/amd64  (x86_64)"
 echo "  - linux/arm64  (ARM64/aarch64)"
 echo ""
 echo "镜像列表:"
-for SERVICE in backend frontend; do
-    echo "  - $REGISTRY/$IMAGE_NAME-$SERVICE:$VERSION"
-done
+echo "  - $REGISTRY/$IMAGE_NAME:$VERSION"
+echo "  - ghcr.io/mkktop/$IMAGE_NAME:$VERSION"
 echo ""
 echo "现在可以在以下平台使用:"
 echo "  - Windows PC (x86_64)"
