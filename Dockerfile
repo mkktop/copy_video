@@ -16,7 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     nginx \
     supervisor \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && adduser --system --no-create-home --group nginx || true
 
 # 设置工作目录
 WORKDIR /app
