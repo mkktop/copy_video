@@ -7,7 +7,7 @@ from typing import Optional
 
 from app.models.settings import TranscodeSettings
 from app.services.settings_service import settings_service
-from app.services.ffmpeg import transcode_video, verify_output
+from app.services.ffmpeg import transcode_video_async, verify_output
 from app.services.file_service import scan_videos, is_video_file
 from app.config import VIDEO_EXTENSIONS
 
@@ -119,7 +119,7 @@ class SchedulerService:
 
             # Run transcode
             success = True
-            for update in transcode_video(str(input_path), str(output_path), custom_metadata=metadata):
+            async for update in transcode_video_async(str(input_path), str(output_path), custom_metadata=metadata):
                 if update["status"] == "error":
                     print(f"Error transcoding {input_path.name}: {update.get('message')}")
                     success = False

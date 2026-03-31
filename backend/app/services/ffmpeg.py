@@ -1,9 +1,10 @@
 """FFmpeg service for video transcoding"""
+import asyncio
 import subprocess
 import re
 import uuid
 from pathlib import Path
-from typing import Generator, Optional, Dict
+from typing import Generator, Optional, Dict, AsyncGenerator
 from datetime import datetime
 
 from app.config import FFMPEG_PATH, FFMPEG_TIMEOUT
@@ -165,3 +166,135 @@ def verify_output(output_path: str) -> bool:
     """Verify that output file exists and has content"""
     path = Path(output_path)
     return path.exists() and path.stat().st_size > 0
+
+
+def _build_metadata_args(custom_metadata: Optional[Dict] = None) -> list:
+    """Build FFmpeg metadata arguments"""
+    metadata = []
+
+    if custom_metadata:
+        if custom_metadata.get("title"):
+            metadata.extend(["-metadata", f"title={custom_metadata['title']}"])
+        if custom_metadata.get("author"):
+            metadata.extend(["-metadata", f"artist={custom_metadata['author']}"])
+        if custom_metadata.get("album"):
+            metadata.extend(["-metadata", f"album={custom_metadata['album']}"])
+        if custom_metadata.get("year"):
+            metadata.extend(["-metadata", f"date={custom_metadata['year']}"])
+        if custom_metadata.get("comment"):
+            metadata.extend(["-metadata", f"comment={custom_metadata['comment']}"])
+        if custom_metadata.get("description"):
+            metadata.extend(["-metadata", f"description={custom_metadata['description']}"])
+        if custom_metadata.get("copyright"):
+            metadata.extend(["-metadata", f"copyright={custom_metadata['copyright']}"])
+        if custom_metadata.get("genre"):
+            metadata.extend(["-metadata", f"genre={custom_metadata['genre']}"])
+
+        if custom_metadata.get("custom"):
+            for key, value in custom_metadata["custom"].items():
+                if value:
+                    metadata.extend(["-metadata", f"{key}={value}"])
+
+    random_uuid = str(uuid.uuid4())
+    metadata.extend([
+        "-metadata", f"encoder=CopyVideo-{random_uuid[:8]}",
+        "-metadata", f"transcoded_at={datetime.now().isoformat()}"
+    ])
+
+    return metadata
+
+
+async def transcode_video_async(
+    input_path: str,
+    output_path: str,
+    cancel_event: Optional[asyncio.Event] = None,
+    progress_callback=None,
+    custom_metadata: Optional[Dict] = None
+) -> AsyncGenerator[dict, None]:
+    """
+    Async version of transcode_video using asyncio.create_subprocess_exec.
+
+    Supports cancellation via cancel_event. Yields progress updates.
+    """
+    input_path = Path(input_path)
+    output_path = Path(output_path)
+
+    if not input_path.exists():
+        yield {"status": "error", "message": f"Input file not found: {input_path}"}
+        return
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    duration = await asyncio.to_thread(get_video_duration, str(input_path))
+    metadata = _build_metadata_args(custom_metadata)
+
+    cmd = [
+        FFMPEG_PATH,
+        "-i", str(input_path),
+        "-map", "0",
+        "-c", "copy",
+        *metadata,
+        "-movflags", "+faststart",
+        "-y",
+        str(output_path)
+    ]
+
+    yield {"status": "starting", "progress": 0}
+
+    try:
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE
+        )
+
+        last_progress = 0
+
+        while True:
+            # Check cancellation
+            if cancel_event and cancel_event.is_set():
+                process.kill()
+                await process.wait()
+                yield {"status": "cancelled"}
+                return
+
+            try:
+                line = await asyncio.wait_for(
+                    process.stderr.readline(), timeout=1.0
+                )
+            except asyncio.TimeoutError:
+                # Timeout on readline, loop back to check cancel_event
+                continue
+
+            if not line:
+                break
+
+            line_str = line.decode(errors="replace").strip()
+            progress = parse_progress(line_str, duration)
+            if progress is not None and abs(progress - last_progress) > 1:
+                last_progress = progress
+                yield {"status": "processing", "progress": progress}
+                if progress_callback:
+                    progress_callback(progress)
+
+        # Check cancellation one more time before finalizing
+        if cancel_event and cancel_event.is_set():
+            yield {"status": "cancelled"}
+            return
+
+        returncode = await process.wait()
+
+        if returncode == 0:
+            yield {"status": "completed", "progress": 100}
+        else:
+            yield {"status": "error", "message": f"FFmpeg exited with code {returncode}"}
+
+    except asyncio.CancelledError:
+        try:
+            process.kill()
+            await process.wait()
+        except Exception:
+            pass
+        yield {"status": "cancelled"}
+    except Exception as e:
+        yield {"status": "error", "message": str(e)}

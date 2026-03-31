@@ -65,7 +65,7 @@
           <el-checkbox
             v-else
             :model-value="selectedFiles.has(row.path)"
-            @change="(val: boolean) => $emit('select-file', row, val)"
+            @change="(val: boolean) => $emit('selectFile', row, val)"
           >
             选择
           </el-checkbox>
@@ -80,7 +80,7 @@ import { type PropType } from 'vue'
 import { Refresh, Back, Folder, VideoCamera } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/api/client'
 
-defineProps({
+const props = defineProps({
   currentPath: String,
   files: Array as PropType<FileInfo[]>,
   loading: Boolean,
@@ -104,15 +104,15 @@ const handleRowClick = (row: FileInfo) => {
 const selectAll = () => {
   for (const file of (props.files || [])) {
     if (!file.is_dir) {
-      emit('select-file', file, true)
+      emit('selectFile', file, true)
     }
   }
 }
 
 const clearSelection = () => {
   for (const file of (props.files || [])) {
-    if (selectedFiles.value.has(file.path)) {
-      emit('select-file', file, false)
+    if (props.selectedFiles.has(file.path)) {
+      emit('selectFile', file, false)
     }
   }
 }
